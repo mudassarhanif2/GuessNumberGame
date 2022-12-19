@@ -1,102 +1,54 @@
 import inquirer from 'inquirer';
 import chalkAnimation from 'chalk-animation';
 import chalk from 'chalk';
-async function welcome() {
-    let rainbow = chalkAnimation.rainbow('Welcome to the number guessing game');
-    setTimeout(() => { console.log(chalk.green("let's start")); }, 2000);
+function sleep() {
+    return new Promise((res) => {
+        setTimeout(res, 100);
+    });
 }
-welcome();
-let randNum = Math.ceil(Math.random() * 5);
-// async function guessNumber() {
-//     inquirer.prompt([
-//         {
-//             type: 'input',
-//         }
-//     ])
-// }
-const questions = [
-    {
-        type: 'confirm',
-        name: 'toBeDelivered',
-        message: 'Is this for delivery?',
-        default: false,
-    },
-    {
-        type: 'input',
-        name: 'phone',
-        message: "What's your phone number?",
-        validate(value) {
-            const pass = value.match(/^([01]{1})?[-.\s]?\(?(\d{3})\)?[-.\s]?(\d{3})[-.\s]?(\d{4})\s?((?:#|ext\.?\s?|x\.?\s?){1}(?:\d+)?)?$/i);
-            if (pass) {
-                return true;
-            }
-            return 'Please enter a valid phone number';
+async function welcome() {
+    const rainbow = chalkAnimation.rainbow('Welcome to the number guessing game');
+    await sleep();
+    rainbow.stop();
+}
+function randomNumber() {
+    return Math.ceil(Math.random() * 2);
+}
+await welcome();
+let score = 0;
+async function guessNumber() {
+    var answer = await inquirer.prompt([
+        {
+            type: 'input',
+            name: 'userInput',
+            message: 'Please enter a number between 1-5 ',
         },
-    },
-    {
-        type: 'list',
-        name: 'size',
-        message: 'What size do you need?',
-        choices: ['Large', 'Medium', 'Small'],
-        filter(val) {
-            return val.toLowerCase();
-        },
-    },
-    {
-        type: 'input',
-        name: 'quantity',
-        message: 'How many do you need?',
-        validate(value) {
-            const valid = !isNaN(parseFloat(value));
-            return valid || 'Please enter a number';
-        },
-        filter: Number,
-    },
-    {
-        type: 'expand',
-        name: 'toppings',
-        message: 'What about the toppings?',
-        choices: [
+    ]);
+    let sysNum = randomNumber();
+    while (answer.userInput == sysNum) {
+        score += 5;
+        console.log(chalk.green('correct:' + chalk.yellow('your score is: ') + chalk.redBright(score)));
+        await inquirer.prompt([
             {
-                key: 'p',
-                name: 'Pepperoni and cheese',
-                value: 'PepperoniCheese',
+                type: 'input',
+                name: 'userInput',
+                message: 'Please enter a number between 1-5 ',
             },
-            {
-                key: 'a',
-                name: 'All dressed',
-                value: 'alldressed',
-            },
-            {
-                key: 'w',
-                name: 'Hawaiian',
-                value: 'hawaiian',
-            },
-        ],
-    },
-    {
-        type: 'rawlist',
-        name: 'beverage',
-        message: 'You also get a free 2L beverage',
-        choices: ['Pepsi', '7up', 'Coke'],
-    },
-    {
-        type: 'input',
-        name: 'comments',
-        message: 'Any comments on your purchase experience?',
-        default: 'Nope, all good!',
-    },
-    {
-        type: 'list',
-        name: 'prize',
-        message: 'For leaving a comment, you get a freebie',
-        choices: ['cake', 'fries'],
-        when(answers) {
-            return answers.comments !== 'Nope, all good!';
-        },
-    },
-];
-inquirer.prompt(questions).then((answers) => {
-    console.log('\nOrder receipt:');
-    console.log(JSON.stringify(answers, null, '  '));
-});
+        ]);
+        sysNum = randomNumber();
+    }
+    console.log('incorrect');
+    let again = await inquirer.prompt([
+        {
+            type: 'confirm',
+            name: 'replay',
+            message: 'would you run again'
+        }
+    ]);
+    if (again.replay) {
+        score = 0;
+        guessNumber();
+    }
+}
+;
+guessNumber();
